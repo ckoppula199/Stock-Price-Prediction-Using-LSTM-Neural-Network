@@ -94,7 +94,7 @@ y_pred = scaler.inverse_transform(y_pred)
 
 # Get RMSE
 rmse = mean_squared_error(y_test, y_pred)
-print(f"root mean squared error is {rmse}")
+print(f"\n\n\nroot mean squared error is {rmse}", end='\n\n\n')
 
 # Plot the data
 train = data[:training_data_len]
@@ -108,3 +108,23 @@ plt.plot(train['Close'])
 plt.plot(actual[['Close', 'Predictions']])
 plt.legend(['Train', 'Actual',  'Predictions'], loc='lower right')
 plt.show()
+
+# Predict stock price one day later
+# Can form a markov chain to predict mutliple days in the future
+data_to_predict = pd_data.DataReader(f"{STOCK_SYMBOL}", data_source='yahoo', start='2020-01-01', end='2020-07-1')
+predict_df = data_to_predict.filter(['Close'])
+# Get last 60 days close price into array format
+last_60_days = predict_df[-60:].values
+# Scale the data
+last_60_days = scaler.transform(last_60_days)
+x_predict_test = np.array([last_60_days])
+# Reshape the data
+x_predict_test = np.reshape(x_predict_test, (x_predict_test.shape[0], x_predict_test.shape[1], 1))
+# Make predictions and undo the scaling
+pred_price = model.predict(x_predict_test)
+pred_price = scaler.inverse_transform(pred_price)
+
+# Get actual price
+actual_price = pd_data.DataReader(f"{STOCK_SYMBOL}", data_source='yahoo', start='2020-07-2', end='2020-07-2')['Close'].values
+print(f"Predicted price: {pred_price[0][0]}", end='\n\n')
+print(f"Actual price: {actual_price[0]}")
